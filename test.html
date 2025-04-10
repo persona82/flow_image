@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>ESP32 미니 대시보드</title>
+  <script type="module">
+    // Firebase SDK 모듈 불러오기
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import {
+      getDatabase,
+      ref,
+      onValue,
+      set
+    } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCz4lnYilLKJyTKankno_gTYktO6wNlPLA",
+      authDomain: "statusdb-a693a.firebaseapp.com",
+      databaseURL: "https://statusdb-a693a-default-rtdb.firebaseio.com",
+      projectId: "statusdb-a693a",
+      storageBucket: "statusdb-a693a.appspot.com",
+      messagingSenderId: "314619112842",
+      appId: "1:314619112842:web:d9b579859af8e18a78ac73",
+      measurementId: "G-LYG2PVMNBR"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    window.onload = () => {
+      const tempEl = document.getElementById("temperature");
+      const humEl = document.getElementById("humidity");
+      const ledEl = document.getElementById("led-status");
+      const toggleBtn = document.getElementById("toggle-led");
+
+      const tempRef = ref(db, "sensor/temperature");
+      const humRef = ref(db, "sensor/humidity");
+      const ledRef = ref(db, "led/status");
+
+      // 실시간 온도
+      onValue(tempRef, (snap) => {
+        tempEl.textContent = snap.val() + " °C";
+      });
+
+      // 실시간 습도
+      onValue(humRef, (snap) => {
+        humEl.textContent = snap.val() + " %";
+      });
+
+      // 실시간 LED 상태
+      onValue(ledRef, (snap) => {
+        const status = snap.val();
+        ledEl.textContent = status;
+        toggleBtn.textContent = status === "ON" ? "LED 끄기" : "LED 켜기";
+      });
+
+      // 버튼 클릭시 LED 상태 토글
+      toggleBtn.onclick = () => {
+        const current = ledEl.textContent;
+        const next = current === "ON" ? "OFF" : "ON";
+        set(ledRef, next);
+      };
+    };
+  </script>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 2rem;
+      background: #f9f9f9;
+    }
+    .card {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+    button {
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      margin-top: 1rem;
+      border-radius: 8px;
+      border: none;
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>🌡️ 온도</h2>
+    <div id="temperature">-- °C</div>
+  </div>
+  <div class="card">
+    <h2>💧 습도</h2>
+    <div id="humidity">-- %</div>
+  </div>
+  <div class="card">
+    <h2>💡 LED 상태</h2>
+    <div id="led-status">OFF</div>
+    <button id="toggle-led">LED 켜기</button>
+  </div>
+</body>
+</html>
